@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ExperimentHub-Student Login</title>
+  <link rel="icon" href="pic.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="auth-container">
+      <div class="auth-box">
+        <h1 class="logo">ExperimentHub</h1>
+        <p class="subtitle">Student Portal</p>
+
+        <h2>Student Login</h2>
+        <form onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="username">Email</label>
+            <input type="email" id="username" placeholder="Enter your email" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter your password" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+
+        </form>
+        <div class="auth-links">
+          <span>
+            Don’t have an account?
+            <a href="student-signup.html">Sign up</a>
+          </span>
+
+          <a href="forgotten-password.html" class="forgot-link">
+            Forgot password?
+          </a>
+        </div>
+        <div id="message" class="message"></div>
+
+        <p class="toggle-text" style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,.14); padding-top: 30px;">
+          <a href="index.html" style="color: var(--muted); text-decoration: none;">← Back to Portal Selection</a>
+        </p>
+      </div>
+
+      <div class="info-box">
+        <div class="illustration-container">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="illustration">
+            <!-- Flask -->
+            <path d="M80 40 L80 100 Q80 120 100 120 Q120 120 120 100 L120 40 M75 40 L125 40" stroke="rgba(124,92,255,0.6)" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- Liquid in flask -->
+            <path d="M85 85 Q85 115 100 115 Q115 115 115 100 L115 85 Z" fill="rgba(35,213,171,0.4)"/>
+            <!-- Bubbles -->
+            <circle cx="95" cy="95" r="3" fill="rgba(35,213,171,0.6)"/>
+            <circle cx="105" cy="105" r="2" fill="rgba(35,213,171,0.5)"/>
+            <circle cx="100" cy="115" r="2" fill="rgba(255,183,3,0.4)"/>
+            
+            <!-- Beaker -->
+            <path d="M140 50 L145 110 Q145 120 140 125 L150 125 Q155 120 155 110 L160 50 M138 50 L162 50" stroke="rgba(255,183,3,0.6)" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- Liquid in beaker -->
+            <path d="M142 90 L142 115 Q142 120 145 123 L155 123 Q158 120 158 115 L158 90 Z" fill="rgba(255,183,3,0.3)"/>
+            
+            <!-- Test tube -->
+            <path d="M50 55 L50 110 Q50 120 45 125 L55 125 Q60 120 60 110 L60 55 Q60 45 55 45 L55 45 Q50 45 50 55" stroke="rgba(35,213,171,0.6)" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- Liquid in test tube -->
+            <path d="M52 80 L52 118 Q52 120 54 122 L56 122 Q58 120 58 118 L58 80 Z" fill="rgba(35,213,171,0.3)"/>
+            
+            <!-- Floating particles/atoms -->
+            <circle cx="70" cy="30" r="1.5" fill="rgba(124,92,255,0.5)"/>
+            <circle cx="110" cy="25" r="1" fill="rgba(35,213,171,0.5)"/>
+            <circle cx="130" cy="35" r="1.5" fill="rgba(255,183,3,0.5)"/>
+            <circle cx="85" cy="20" r="1" fill="rgba(124,92,255,0.4)"/>
+            
+            <!-- Connection lines for atoms -->
+            <line x1="70" y1="30" x2="85" y2="20" stroke="rgba(124,92,255,0.3)" stroke-width="1"/>
+            <line x1="110" y1="25" x2="130" y2="35" stroke="rgba(35,213,171,0.3)" stroke-width="1"/>
+          </svg>
+        </div>
+        
+        <h3>Welcome to ExperimentHub</h3>
+        <p>Share your innovative experiment ideas with your teachers and peers. Upload, collaborate, and bring your research to life.</p>
+        <ul class="features">
+          <li>✓ Secure login authentication</li>
+          <li>✓ Easy file uploads</li>
+          <li>✓ Organize your ideas</li>
+          <li>✓ Track submissions</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+function handleLogin(event) {
+  event.preventDefault();
+
+  const email = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const messageDiv = document.getElementById('message');
+
+  if (!email || !password) {
+    messageDiv.className = "message error";
+    messageDiv.textContent = "Please enter email and password";
+    return;
+  }
+
+  fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log("Login response:", data);
+    if (data.success) {
+      messageDiv.className = "message success";
+      messageDiv.textContent = "Login successful! Redirecting...";
+
+      setTimeout(() => {
+        window.location.href = "student-dashboard.html";
+      }, 1000);
+    } else {
+      messageDiv.className = "message error";
+      messageDiv.textContent = data.message;
+    }
+  })
+  .catch(() => {
+    messageDiv.className = "message error";
+    messageDiv.textContent = "Server error. Try again.";
+  });
+}
+</script>
+
+</body>
+</html>

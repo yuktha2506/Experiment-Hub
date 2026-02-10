@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Login - Experiment Upload System</title>
+  <link rel="icon" href="pic.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="auth-container">
+      <div class="auth-box">
+        <h1 class="logo">ExperimentHub</h1>
+        <p class="subtitle">Staff Portal</p>
+
+        <!-- Login Form -->
+        <div id="login-form" class="form-container active">
+          <h2>Login</h2>
+          <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label for="login-username">Username</label>
+              <input type="text" id="login-username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-group">
+              <label for="login-password">Password</label>
+              <input type="password" id="login-password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+          </form>
+          <p class="toggle-text">Don't have an account? <a href="#" onclick="toggleForms(event)">Sign up here</a></p>
+          <div id="login-message" class="message"></div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" class="form-container">
+          <h2>Create Account</h2>
+          <form onsubmit="handleRegister(event)">
+            <div class="form-group">
+              <label for="register-username">Username</label>
+              <input type="text" id="register-username" placeholder="Choose a username" required>
+            </div>
+            <div class="form-group">
+              <label for="register-email">Email</label>
+              <input type="email" id="register-email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+              <label for="register-staff-id">Staff ID</label>
+              <input type="text" id="register-staff-id" placeholder="Enter your staff ID" required>
+            </div>
+            <div class="form-group">
+              <label for="register-password">Password</label>
+              <input type="password" id="register-password" placeholder="Create a password" required>
+            </div>
+            <div class="form-group">
+              <label for="register-confirm-password">Confirm Password</label>
+              <input type="password" id="register-confirm-password" placeholder="Confirm your password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Sign Up</button>
+          </form>
+          <p class="toggle-text">Already have an account? <a href="#" onclick="toggleForms(event)">Login here</a></p>
+          <div id="register-message" class="message"></div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <h3>Welcome to ExperimentHub</h3>
+        <p>Share your innovative experiment ideas with your team. Upload, collaborate, and bring your research to life.</p>
+        <ul class="features">
+          <li>✓ Secure login authentication</li>
+          <li>✓ Easy file uploads</li>
+          <li>✓ Organize your ideas</li>
+          <li>✓ Track submissions</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleForms(event) {
+      event.preventDefault();
+      document.getElementById('login-form').classList.toggle('active');
+      document.getElementById('register-form').classList.toggle('active');
+    }
+
+    function handleLogin(event) {
+      event.preventDefault();
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+      const messageDiv = document.getElementById('login-message');
+
+      fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: username, password })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            messageDiv.className = 'message success';
+            messageDiv.textContent = 'Login successful! Redirecting...';
+            setTimeout(() => window.location.href = (data.redirect || 'dashboard.html'), 1500);
+          } else {
+            messageDiv.className = 'message error';
+            messageDiv.textContent = data.message || data.error || 'Login failed';
+          }
+        })
+        .catch(error => {
+          messageDiv.className = 'message error';
+          messageDiv.textContent = 'An error occurred. Please try again.';
+        });
+    }
+
+    function handleRegister(event) {
+      event.preventDefault();
+      const username = document.getElementById('register-username').value;
+      const email = document.getElementById('register-email').value;
+      const staff_id = document.getElementById('register-staff-id').value;
+      const password = document.getElementById('register-password').value;
+      const confirm_password = document.getElementById('register-confirm-password').value;
+      const messageDiv = document.getElementById('register-message');
+
+      if (password !== confirm_password) {
+        messageDiv.className = 'message error';
+        messageDiv.textContent = 'Passwords do not match';
+        return;
+      }
+      fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: username, email, staff_id, password, role: 'staff' })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            messageDiv.className = 'message success';
+            messageDiv.textContent = data.message;
+            document.getElementById('register-form').reset();
+            setTimeout(() => toggleForms(event), 2000);
+          } else {
+            messageDiv.className = 'message error';
+            messageDiv.textContent = data.message || data.error || 'Signup failed';
+          }
+        })
+        .catch(error => {
+          messageDiv.className = 'message error';
+          messageDiv.textContent = 'An error occurred. Please try again.';
+        });
+    }
+  </script>
+</body>
+</html>

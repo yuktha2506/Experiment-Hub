@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ExperimentHub - Student Dashboard</title>
+<link rel="icon" href="pic.png" type="image/png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+/* ===== RESET ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* ===== THEME (UNCHANGED) ===== */
+:root{
+  --bg1:#0b1023;
+  --bg2:#0f1b3d;
+  --card:rgba(255,255,255,.08);
+  --stroke:rgba(255,255,255,.16);
+  --text:rgba(255,255,255,.92);
+  --muted:rgba(255,255,255,.72);
+  --brand1:#7c5cff;
+  --brand2:#23d5ab;
+  --radius:18px;
+  --shadow:0 18px 60px rgba(0,0,0,.35);
+}
+
+body{
+  min-height:100vh;
+  font-family:system-ui,Segoe UI,Roboto,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(1200px 900px at 15% 15%, #14265a 0%, transparent 60%),
+    radial-gradient(1000px 800px at 85% 20%, #2e145a 0%, transparent 55%),
+    linear-gradient(180deg,var(--bg1),var(--bg2));
+}
+
+/* ===== LAYOUT ===== */
+.container{
+  max-width:1400px;
+  margin:0 auto;
+  padding:20px;
+  display:grid;
+  grid-template-columns:280px 1fr;
+  gap:24px;
+}
+
+/* ===== GRID ===== */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:16px;
+}
+
+/* ===== CARD (UNCHANGED STRUCTURE) ===== */
+.card{
+  position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:16px;
+  padding:18px;
+  transition:all 0.3s ease;
+}
+
+.card:hover{
+  border-color:rgba(124,92,255,.3);
+  background:linear-gradient(180deg,rgba(124,92,255,.06),rgba(35,213,171,.03));
+  box-shadow:0 0 20px rgba(124,92,255,.1);
+}
+
+.save{
+  position:absolute;
+  right:14px;
+  top:14px;
+  font-size:12px;
+  color:rgba(35,213,171,.6);
+  transition:all 0.2s ease;
+  cursor:pointer;
+}
+
+.save:hover{
+  color:var(--brand2);
+  transform:scale(1.2);
+}
+
+.tags{
+  display:flex;
+  gap:8px;
+  margin:8px 0;
+}
+.tag{
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:12px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  color:var(--muted);
+  transition:all 0.2s ease;
+}
+
+.tag:first-child{
+  background:rgba(35,213,171,.15);
+  border-color:rgba(35,213,171,.3);
+  color:rgba(35,213,171,.9);
+}
+
+.tag:nth-child(2){
+  background:rgba(124,92,255,.15);
+  border-color:rgba(124,92,255,.3);
+  color:rgba(124,92,255,.9);
+}
+
+.tag:nth-child(3){
+  background:rgba(255,193,7,.15);
+  border-color:rgba(255,193,7,.3);
+  color:rgba(255,193,7,.9);
+}
+
+.tag.severity-badge{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.2);
+  color:rgba(255,255,255,.7);
+  font-weight:500;
+  font-size:11px;
+}
+
+.card p{
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.5;
+  margin-bottom:12px;
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+}
+.actions button{
+  flex:1;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid var(--stroke);
+  background:transparent;
+  color:var(--text);
+  font-weight:700;
+  transition:all 0.2s ease;
+}
+
+.actions button:hover{
+  background:rgba(124,92,255,.1);
+  border-color:rgba(124,92,255,.4);
+  color:var(--brand2);
+}
+
+.copy{
+  background:linear-gradient(135deg,var(--brand1),var(--brand2));
+  border:none;
+  color:white;
+}
+
+.copy:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 16px rgba(124,92,255,.3);
+}
+
+/* ===== DIFFICULTY LEVELS ===== */
+.card.level-easy{
+  border-left:3px solid rgba(76,175,80,.6);
+}
+
+.card.level-easy:hover{
+  border-left-color:rgba(76,175,80,1);
+  box-shadow:0 0 20px rgba(76,175,80,.15);
+}
+
+.card.level-medium{
+  border-left:3px solid rgba(255,152,0,.6);
+}
+
+.card.level-medium:hover{
+  border-left-color:rgba(255,152,0,1);
+  box-shadow:0 0 20px rgba(255,152,0,.15);
+}
+
+/* ===== SUBJECT COLORS ===== */
+.card.subject-science{
+  border-top:2px solid rgba(244,67,54,.3);
+}
+
+.card.subject-science:hover{
+  border-top-color:rgba(244,67,54,.6);
+}
+
+.card.subject-maths{
+  border-top:2px solid rgba(33,150,243,.3);
+}
+
+.card.subject-maths:hover{
+  border-top-color:rgba(33,150,243,.6);
+}
+
+/* ===== MODAL ===== */
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.65);
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+}
+.modal-card{
+  width:90%;
+  max-width:900px;
+  max-height:90vh;
+  overflow:auto;
+  background:linear-gradient(180deg,#121b3a,#0c1228);
+  border-radius:18px;
+  padding:30px;
+  border:1px solid var(--stroke);
+}
+.modal-header {
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 15px;
+}
+.modal-header h2 {
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, var(--brand1), var(--brand2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 28px;
+}
+.modal-subtitle {
+  color: var(--muted);
+  font-size: 16px;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+.modal-content {
+  margin-bottom: 25px;
+}
+.modal-section {
+  margin-bottom: 25px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.modal-section h4 {
+  color: var(--brand2);
+  margin-bottom: 15px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.modal-section h4:before {
+  content: "📋";
+  font-size: 20px;
+}
+.procedure-list {
+  padding-left: 20px;
+}
+.procedure-step {
+  margin-bottom: 12px;
+  padding-left: 10px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.85);
+}
+.procedure-step:before {
+  content: "→";
+  color: var(--brand1);
+  margin-right: 10px;
+  font-weight: bold;
+}
+.video-section {
+  margin-top: 25px;
+  text-align: center;
+}
+.video-section h4 {
+  color: var(--brand2);
+  margin-bottom: 15px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.video-section h4:before {
+  content: "🎬";
+  font-size: 20px;
+}
+.modal video {
+  width: 100%;
+  max-height: 400px;
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.video-placeholder {
+  background: rgba(0,0,0,0.3);
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  border: 2px dashed rgba(255,255,255,0.1);
+  color: var(--muted);
+}
+.close{
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+.close:hover {
+  background: rgba(255,50,50,0.3);
+  transform: rotate(90deg);
+}
+
+/* ===== TOP NAVBAR ===== */
+.student-navbar{
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+  border-bottom:1px solid var(--stroke);
+  padding:16px 24px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  backdrop-filter:blur(10px);
+}
+.student-navbar .brand{
+  font-size:22px;
+  font-weight:800;
+  background:linear-gradient(135deg,var(--brand1),var(--brand2));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.student-navbar .nav-right{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.student-navbar .btn-logout{
+  padding:10px 20px;
+  border-radius:12px;
+  border:1px solid rgba(244,67,54,.4);
+  background:rgba(244,67,54,.15);
+  color:#ff8a80;
+  font-size:14px;
+  font-weight:600;
+  text-decoration:none;
+  transition:all 0.2s ease;
+}
+.student-navbar .btn-logout:hover{
+  background:rgba(244,67,54,.25);
+  border-color:rgba(244,67,54,.6);
+  color:#ffcdd2;
+}
+
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+}
+
+/* ===== FILTERS ===== */
+.filters{
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  border:1px solid var(--stroke);
+  border-radius:16px;
+  padding:20px;
+  height:fit-content;
+  position:sticky;
+  top:20px;
+}
+
+.filters h3{
+  font-size:18px;
+  margin-bottom:16px;
+  color:var(--text);
+  font-weight:600;
+  background:linear-gradient(135deg,var(--brand1),var(--brand2));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.filters label{
+  display:block;
+  font-size:13px;
+  font-weight:600;
+  color:var(--muted);
+  margin-top:14px;
+  margin-bottom:8px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+
+.filters input,
+.filters select{
+  width:100%;
+  padding:10px 12px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--stroke);
+  border-radius:10px;
+  color:var(--text);
+  font-size:14px;
+  font-family:inherit;
+  transition:all 0.2s ease;
+}
+
+.filters input::placeholder{
+  color:rgba(255,255,255,.4);
+}
+
+.filters input:focus,
+.filters select:focus{
+  outline:none;
+  background:rgba(255,255,255,.08);
+  border-color:var(--brand1);
+  box-shadow:0 0 12px rgba(124,92,255,.2);
+}
+
+.filters select{
+  cursor:pointer;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='rgba(124,92,255,0.8)' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 10px center;
+  padding-right:32px;
+  color:#23d5ab;
+  font-weight:500;
+}
+
+.filters select:hover{
+  background-color:rgba(124,92,255,.1);
+  border-color:var(--brand1);
+}
+
+.filters select option{
+  background:#0b1023;
+  color:#23d5ab;
+  padding:8px;
+}
+
+.filter-actions{
+  display:flex;
+  gap:10px;
+  margin-top:20px;
+}
+
+.filter-actions button{
+  flex:1;
+  padding:12px 16px;
+  border-radius:10px;
+  border:1px solid var(--stroke);
+  background:transparent;
+  color:var(--text);
+  font-weight:600;
+  cursor:pointer;
+  font-size:14px;
+  transition:all 0.2s ease;
+}
+
+.filter-actions button:hover{
+  background:rgba(255,255,255,.08);
+  border-color:var(--brand2);
+  color:var(--brand2);
+}
+
+.filter-actions .apply{
+  background:linear-gradient(135deg,var(--brand1),var(--brand2));
+  border:none;
+  color:white;
+}
+
+.filter-actions .apply:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(124,92,255,.3);
+  background:linear-gradient(135deg,rgba(124,92,255,1),rgba(35,213,171,1));
+}
+
+@media(max-width:1024px){
+  .container{
+    grid-template-columns:1fr;
+  }
+  
+  .filters{
+    position:relative;
+    top:0;
+  }
+  
+  .grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:768px){
+  .container{
+    padding:15px;
+    gap:16px;
+  }
+  
+  .grid{
+    grid-template-columns:1fr;
+  }
+  
+  .modal-card {
+    padding: 20px;
+    margin: 10px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<nav class="student-navbar">
+  <span class="brand">ExperimentHub</span>
+  <div class="nav-right">
+    <a href="student-login.html" class="btn-logout">Logout</a>
+  </div>
+</nav>
+
+<div class="container">
+    <!-- FILTER SIDEBAR -->
+<div class="filters">
+  <h3>Filters</h3>
+
+  <label>Search</label>
+  <input id="f-search" placeholder="Try: solar, probability">
+
+  <label>Subject</label>
+  <select id="f-subject">
+    <option value="all">All</option>
+    <option value="science">Science</option>
+    <option value="maths">Maths</option>
+  </select>
+
+  <label>Difficulty</label>
+  <select id="f-level">
+    <option value="all">All</option>
+    <option value="easy">Easy</option>
+    <option value="medium">Medium</option>
+  </select>
+
+  <label>Class</label>
+  <select id="f-class">
+    <option value="all">All</option>
+    <option value="1-3">1-3</option>
+    <option value="4-6">4-6</option>
+    <option value="7-9">7-9</option>
+  </select>
+
+  <div class="filter-actions">
+    <button onclick="clearFilters()">Clear</button>
+    <button class="apply" onclick="applyFilters()">Apply</button>
+  </div>
+</div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal" id="modal">
+  <div class="modal-card">
+    <button class="close" onclick="closeModal()">✕</button>
+    <div class="modal-header">
+      <h2 id="m-title"></h2>
+      <div class="modal-subtitle" id="m-desc"></div>
+    </div>
+    
+    <div class="modal-content">
+      <div class="modal-section">
+        <h4>Detailed Procedure</h4>
+        <ol class="procedure-list" id="m-procedure"></ol>
+      </div>
+      
+      <div class="video-section">
+        <h4>Video Demonstration</h4>
+        <div id="video-container">
+          <!-- Video will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== DATA (20+ SCIENCE & MATHS IDEAS) ===== */
+const ideas = [
+{
+  title: "Fibonacci in Nature",
+  subject: "maths",
+  level: "easy",
+  class: "4-6",
+  desc: "Observe how the Fibonacci sequence appears in nature through patterns in flowers, leaves, and seed arrangements.",
+  detailedProc: [
+    "Watch the video to understand the Fibonacci sequence: 1, 1, 2, 3, 5, 8, 13, 21…",
+    "Collect flowers such as daisies, sunflowers, or lilies from your surroundings",
+    "Count the number of petals on each flower carefully",
+    "Check if the petal numbers match the Fibonacci sequence",
+    "Observe sunflower heads or pinecones and look for spiral patterns",
+    "Count the spirals in clockwise and anticlockwise directions",
+    "Note how the spiral counts follow Fibonacci numbers",
+    "Record all observations in a table or notebook",
+    "Draw or take pictures of the patterns you observed"
+  ],
+  videoLink: "https://youtu.be/2tv6Ej6JVho?si=dvpqgfz7BheDdwB7"
+},
+{
+  title: "Pascal's Triangle & Probability",
+  subject: "maths",
+  level: "medium",
+  class: "7-9",
+  desc: "Explore probability patterns using Pascal’s Triangle and simple probability experiments.",
+  detailedProc: [
+    "Draw Pascal’s Triangle up to 10 rows",
+    "Each number is the sum of the two numbers directly above it",
+    "Notice that the sums of each row equal powers of 2",
+    "Use the triangle to find combinations for simple events",
+    "For a coin toss experiment, use row 2 to see probabilities 1:2:1",
+    "Use the triangle to work out outcomes for 3 or more tosses",
+    "Create small games (like coin tosses or dice rolls) and predict outcomes using Pascal’s Triangle",
+    "Perform the experiments and compare actual results with the triangle values"
+  ],
+  videoLink: "https://youtu.be/wLddZWW9OoI?si=0fqD3L44rgpt8dzQ"
+},
+{
+  title: "Solar oven using Pizza Box",
+  subject: "science",
+  level: "easy",
+  class: "4-6",
+  desc: "Observe how solar energy can be used to cook or heat food by making a simple solar oven using a cardboard or pizza box.",
+  detailedProc: [
+    "Collect materials such as a pizza box, aluminum foil, black paper, plastic sheet, tape, and scissors",
+    "Cut a square flap on the top of the box and fold it upward",
+    "Cover the inner side of the flap with aluminum foil",
+    "Place black paper inside the box to absorb heat",
+    "Seal the opening with a transparent plastic sheet",
+    "Place the solar oven in direct sunlight",
+    "Put small food items inside the box",
+    "Adjust the foil flap to reflect maximum sunlight inside",
+    "Observe the increase in heat and record your observations"
+  ],
+  videoLink: "https://youtu.be/xbwliZJiHe8?si=nL0d1pDaaju2cj7v"
+},
+{
+  title: "DIY Water Filter",
+  subject: "science",
+  level: "medium",
+  class: "4-6",
+  desc: "Observe how to make a DIY water filter that cleans dirty water using simple everyday materials — a fun and useful science experiment to understand water filtration and purification.",
+  detailedProc: [
+    "Collect materials such as a plastic bottle, cotton or cloth, small pebbles, sand, charcoal, and larger rocks",
+    "Cut the plastic bottle to create an opening if needed",
+    "Place cotton or cloth at the bottom to catch large particles",
+    "Add layers of charcoal to trap finer impurities and absorb chemicals",
+    "Put sand and then pebbles on top to filter smaller and larger particles respectively",
+    "Pour dirty water slowly into the top and let it pass through all the layers",
+    "Collect the filtered water in a clean container at the bottom",
+    "Observe how the water becomes clearer after passing through each layer"
+  ],
+  videoLink: "https://youtu.be/60Big9Ut6Mc?si=DywJWClUgLyJ-DlV"
+},
+{
+  title: "Electromagnet Strength",
+  subject: "science",
+  level: "medium",
+  class: "7-9",
+  desc: "Observe how to make a simple electromagnet at home using a battery, wire, and metal — and learn what affects the strength of an electromagnet..",
+  detailedProc: [
+    "Collect materials: a battery (D-cell), insulated copper wire, a large iron nail, and small metal objects (paper clips)",
+    "Wrap the copper wire tightly around the nail, leaving both ends free",
+    "Connect the free ends of the wire to the ends of the battery (one end to + and one to −)",
+    "Test how many paperclips the electromagnet can pick up",
+    "Hold the nail close to paper clips or pins and observe how it attracts them like a magnet",
+    "Try changing the number of wire turns or the battery voltage and observe how the strength varies",
+    "Record your observations in a notebook"
+  ],
+  videoLink: "https://youtu.be/gwCYzNaFts8?si=ZiaFBrU2Z7L_JaSd"
+},
+{
+  title: "Acid Base Indicator",
+  subject: "science",
+  level: "easy",
+  class: "4-6",
+  desc: "Observe how red cabbage juice can be used as a natural pH indicator to test whether common liquids are acidic, neutral, or basic.",
+  detailedProc: [
+    "Collect materials such as red cabbage leaves, water, a blender, strainer, clear cups, and common liquids (like vinegar, lemon juice, baking soda solution, and water)",
+    "Chop the cabbage and blend it with warm water to make purple cabbage juice",
+    "Strain the juice into a container and pour equal amounts into separate clear cups",
+    "Add different liquids to each cup (e.g., vinegar, lemon juice, baking soda solution, tap water)",
+    "Observe how the cabbage-water changes color depending on the liquid added",
+    "Record which colors correspond to acids, neutrals, and bases",
+    "Observe color changes: pink/red = acid, blue/green = base",
+    "Create a color chart showing pH range from acid to base",
+    "Test unknown household liquids and guess their pH"
+  ],
+  videoLink: "https://youtu.be/I18K2upEHLc?si=OOly3VeFVdtfsrZT"
+},
+{
+  title: "Pendulum Time vs Length",
+  subject: "science",
+  level: "medium",
+  class: "7-9",
+  desc: "Study how the length of a pendulum affects the time it takes to complete swings.",
+  detailedProc: [
+    "Tie a weight (metal washer) to a string",
+    "Start with 50 cm length from pivot point to center of weight",
+    "Pull the pendulum back about 10 degrees and release",
+    "Use a stopwatch to time 10 complete swings",
+    "Divide the total time by 10 to find the period (time for one swing)",
+    "Repeat the timings for different lengths: 25 cm, 50 cm, 75 cm, 100 cm, 125 cm",
+    "Keep the release angle and weight the same for all tests",
+    "Record all time measurements in a table",
+    "Plot a graph of length versus period squared",
+    "Observe that the period increases with the square root of the length"
+  ],
+  videoLink: "https://youtu.be/02w9lSii_Hs?si=qsquSWnRA7wPM5OF"
+},
+{
+  title: "Simple Circuits",
+  subject: "science",
+  level: "easy",
+  class: "4-6",
+  desc: "Build and explore basic electrical circuits to understand how electricity flows.",
+  detailedProc: [
+    "Connect a D-cell battery to a small light bulb using wires",
+    "Add a switch to the circuit to turn the light on and off",
+    "Build a series circuit with two bulbs and observe how they light up",
+    "Build a parallel circuit with two bulbs and compare with the series circuit",
+    "Add different resistors or conductors and observe changes in bulb brightness",
+    "Test the conductivity of various materials: coin, pencil lead, plastic, and wood",
+    "Build a simple circuit using a buzzer instead of a bulb",
+    "Create a basic conductivity tester by using the circuit to test liquids",
+    "Always disconnect batteries when the circuit is not in use"
+  ],
+  videoLink: "https://youtu.be/Uv-dkYSgGI4?si=hVdKmf39yE28BRZ9"
+},
+{
+  title: "Paper Airplanes",
+  subject: "science",
+  level: "easy",
+  class: "1-3",
+  desc: "Test different paper airplane designs and compare how far and steadily they fly.",
+  detailedProc: [
+    "Fold 3 different paper airplane designs",
+    "Design 1: Basic dart – pointy nose and narrow wings",
+    "Design 2: Glider – wide wings and flat body",
+    "Design 3: Stunt plane – curved wings for tricks",
+    "Mark a starting line on the floor",
+    "Throw each plane 5 times from the same position",
+    "Measure distance from the starting line to each landing spot",
+    "Record results in a table",
+    "Note which design flies the farthest and which is most steady",
+    "Try adding paper clips to the nose to improve balance"
+    ],
+  videoLink: "https://youtu.be/XivOL1PM0EY?si=p1ma8hZLXHd0js9l"
+},
+{
+  title: "Sink or Float",
+  subject: "science",
+  level: "easy",
+  class: "1-3",
+  desc: "Learn about buoyancy by testing whether everyday objects sink or float in water.",
+  detailedProc: [
+    "Fill a large container with water",
+    "Collect test objects: coin, cork, plastic toy, metal spoon, eraser, apple",
+    "Make predictions for each object: sink or float?",
+    "Test each object one by one by placing it in the water",
+    "Record results in a chart: predicted vs actual",
+    "Group objects that float together",
+    "Group objects that sink together",
+    "Try changing shape: mold clay into a ball (sinks) vs boat shape (floats)",
+    "Add salt to the water and retest — observe how some objects float better!"
+  ],
+  videoLink: "https://youtu.be/E5FE1zp9fxM?si=i6ULpaOu7uaO6FM7"
+},
+{
+  title: "Magnet Exploration",
+  subject: "science",
+  level: "easy",
+  class: "1-3",
+  desc: "Discover what objects a magnet can attract.",
+  detailedProc: [
+    "Collect various objects: paper clip, aluminum foil, copper coin, steel nail, plastic toy",
+    "Test each object with a bar magnet",
+    "Make two piles: magnetic and non-magnetic",
+    "Discover that magnets only attract iron, nickel, and cobalt",
+    "Try different magnet shapes: horseshoe, disc, bar",
+    "Find the strongest part of the magnet (its poles)",
+    "Explore what happens when two magnets meet (attract or repel)",
+    "Use magnets to sort mixed objects into magnetic and non-magnetic groups",
+    "Make a simple compass by floating a magnetized needle in water"
+  ],
+  videoLink: "https://youtu.be/w_ZqTGxtHrk?si=YfY8YE716-4yHbWP"
+},
+{
+  title: "Color Mixing",
+  subject: "science",
+  level: "easy",
+  class: "1-3",
+  desc: "Create new colors by mixing primary colors.",
+  detailedProc: [
+    "Set up three cups with primary colors: red, yellow, blue (use food coloring)",
+    "Use eye droppers or spoons to transfer colors",
+    "Mix red + yellow = orange",
+    "Mix blue + yellow = green",
+    "Mix red + blue = purple",
+    "Mix all three = brown",
+    "Create a color wheel showing primary and secondary colors",
+    "Try making different shades by adding more or less color",
+    "Paint a rainbow using your mixed colors",
+    "Experiment with mixing colored lights using flashlights and cellophane"
+  ],
+  videoLink: "https://youtu.be/9EUfVIon6t8?si=dzB4E6wblhD_y68p"
+},
+{
+  title: "Sound Absorption",
+  subject: "science",
+  level: "easy",
+  class: "4-6",
+  desc: "Compare how well different materials absorb sound and learn which materials reduce noise the most.",
+  detailedProc: [
+    "Place a smartphone playing a steady tone inside a closed box",
+    "Test different box linings: cotton, foam, cardboard, aluminum foil",
+    "Close the box lid securely each time before measuring",
+    "Use a decibel meter app to measure sound level from 1 meter away",
+    "Record decibel readings for each material",
+    "Compare which materials reduce sound the most",
+    "Test materials without a box (curtains, carpet, pillows) and observe results",
+    "Try arranging materials in different thicknesses to see changes",
+    "Discuss why soft and porous materials absorb sound better",
+    "Identify which lining makes the box quietest"
+  ],
+  videoLink: "https://youtu.be/h9eatjebn_8?si=Hydn_UvJ3VWmp7ny"
+},
+{
+  title: "Plant Growth",
+  subject: "science",
+  level: "easy",
+  class: "1-3",
+  desc: "Observe the plant life cycle and seed germination using a simple working model to understand how a seed grows into a plant..",
+  detailedProc: [
+    "Collect seeds, soil, water, and small pots or cups",
+    "Fill the pot with soil and place the seeds inside",
+    "Water the soil lightly",
+    "Keep the pot in a sunny place",
+    "Observe the seed sprouting roots and shoots",
+    "Note the growth of stem and leaves",
+    "Record the observations daily",
+    "Chart the growth patterns over 3 weeks"
+  ],
+  videoLink: "https://youtube.com/playlist?list=PLTnGIRXNGw0dIewI7SN0ouZBfEV1ImwUa&si=rab0nmN3bpzDCCt1"
+},
+{
+  title: "Weather Chart",
+  subject: "science",
+  level: "easy",
+  class: "1-3",
+  desc: "Track daily weather patterns using simple instruments and observations.",
+  detailedProc: [
+    "Create a weather chart with columns: date, temperature, clouds, rain, wind",
+  "Observe the weather at the same time each day",
+  "Use a thermometer to measure temperature",
+  "Note cloud types: cumulus (fluffy), stratus (layered), cirrus (wispy)",
+  "Record rainfall amounts in a homemade rain gauge",
+  "Note wind direction using a wind vane",
+  "Draw weather symbols for each day on the chart",
+  "Predict tomorrow’s weather based on patterns you observe",
+  "At the end of the month, create a summary of your weather observations"
+  ],
+  videoLink: "https://youtu.be/OvYor0ugAMw?si=GYw3tyvZIsz2cQJi"
+},
+{
+  title: "Bottle Rocket Motion",
+  subject: "science",
+  level: "medium",
+  class: "7-9",
+  desc: "Study projectile motion safely using a water bottle rocket at different launch angles.",
+  detailedProc: [
+    "Take a plastic bottle and add 1/3 water",
+    "Attach the bottle to a bicycle pump using a rubber stopper",
+    "Launch the rocket at angles of 30°, 45°, and 60°",
+    "Measure the launch distance for each angle",
+    "Record data in a table: angle vs distance",
+    "Find the angle that gives the longest distance (should be about 45°)",
+    "Experiment with different water amounts to see changes in distance",
+    "Add fins to the bottle for better stability",
+    "Launch in an open area away from people",
+    "Always wear safety glasses when launching"
+  ],
+  videoLink: "https://youtu.be/VEOB64o04qU?si=UJbkbxym_MdX1Z77"
+},
+{
+  title: "Mean Median Mode",
+  subject: "maths",
+  level: "easy",
+  class: "4-6",
+  desc: "Analyze collected data using mean, median, and mode to understand statistical patterns.",
+  detailedProc: [
+    "Collect height data from 10 classmates",
+"Arrange the heights in ascending order",
+"Calculate the mean: sum of all heights ÷ number of people",
+"Find the median: the middle value in the ordered list",
+"Identify the mode: the most frequent height",
+"Create a frequency table of the height data",
+"Draw a bar graph of the heights from the table",
+"Collect another dataset: favorite colors of classmates",
+"Calculate mean, median, and mode for the second dataset",
+"Compare which statistical measure is best for different types of data"
+  ],
+  videoLink: "https://youtu.be/bzg5RKnDKFA?si=9eHlPbPOuOFeuDWO"
+},
+{
+  title: "Density Column",
+  subject: "science",
+  level: "easy",
+  class: "4-6",
+  desc: "Demonstrate density differences by layering liquids and observing how objects settle in them.",
+  detailedProc: [
+    "Gather liquids: honey, corn syrup, dish soap, water, vegetable oil, rubbing alcohol",
+"Add different food coloring to each liquid for visibility",
+"Pour honey first (densest) into a tall clear glass",
+"Slowly pour corn syrup down the side using a spoon",
+"Add dish soap next, then water, then oil, then rubbing alcohol",
+"Observe distinct layers forming based on density",
+"Try dropping small objects: bead, grape, plastic chip",
+"See which layer each object settles in",
+"Explain why less dense liquids float on denser ones",
+"Shake gently and watch how the layers re-form"
+  ],
+  videoLink: "https://youtu.be/KgZ7JtmOgHI?si=SsLumFJDR5fMWuzv"
+},
+{
+  title: "Refraction of Light",
+  subject: "science",
+  level: "medium",
+  class: "7-9",
+  desc: "Study how light bends when it passes from air into water and other mediums.",
+  detailedProc: [
+    "Fill a glass with water",
+"Place a pencil in the water at an angle",
+"Observe how the pencil appears bent at the water surface",
+"Place a coin in an empty cup and move until it is just hidden by the rim",
+"Fill the cup with water — the coin becomes visible!",
+"Use a laser pointer to shine light through the water",
+"Measure the angles of incidence and refraction",
+"Try different liquids like oil or sugar solution and observe changes",
+"Create a rainbow using a prism or a CD",
+"Explain why a swimming pool looks shallower than it really is"
+  ],
+  videoLink: "https://youtu.be/sBb5WUw2_2I?si=NtXyVgeKRd2oa_Dm"
+},
+{
+  title: "Surface Area vs Volume",
+  subject: "maths",
+  level: "medium",
+  class: "7-9",
+  desc: "Study how different shapes with the same volume cool at different rates.",
+  detailedProc: [
+    "Cut potatoes into different shapes: cube, long rectangle, flat sheet",
+"Ensure all pieces have the same volume by weighing them",
+"Heat each piece in the microwave for 30 seconds",
+"Measure the temperature immediately with a thermometer",
+"Record the temperature every minute for 10 minutes",
+"Plot cooling curves for each shape on a graph",
+"Calculate surface area to volume ratios for each shape",
+"Relate the cooling rate to surface area",
+"Explain why small animals lose heat faster than large animals",
+"Apply this idea to packaging design: why chips are sold in bags, not boxes"
+  ],
+  videoLink: "https://youtube.com/shorts/MscjsCjxGEg?si=F4LPAXGAqIj3y3Bw"
+}
+];
+</script>
+
+<script>
+const grid = document.getElementById("grid");
+
+function renderIdeas(list){
+  let html = "";
+  list.forEach((x, i) => {
+    const difficultyClass = `level-${x.level}`;
+    const subjectClass = `subject-${x.subject}`;
+    const severityBadge = x.level === 'easy' ? '🟢 Safe' : '🟠 Caution';
+    html += `
+      <div class="card ${difficultyClass} ${subjectClass}">
+        <div class="save">★ Save</div>
+        <h4>${x.title}</h4>
+        <div class="tags">
+          <span class="tag">${x.subject}</span>
+          <span class="tag">${x.level}</span>
+          <span class="tag">${x.class}</span>
+          <span class="tag severity-badge">${severityBadge}</span>
+        </div>
+        <p>${x.desc}</p>
+        <div class="actions">
+          <button onclick="openModal(${i})">View details</button>
+          <button class="copy" onclick="copyIdea(${i})">Copy</button>
+        </div>
+      </div>`;
+  });
+  grid.innerHTML = html;
+  
+  // Add event listeners to copy buttons
+  document.querySelectorAll(".copy").forEach((btn, i) => {
+    btn.addEventListener("click", (e) => e.stopPropagation());
+  });
+}
+
+// Load experiments from API
+function loadExperiments() {
+  fetch('/api/experiments', {
+    credentials: 'include'
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.error) {
+      console.error('Error loading experiments:', data.error);
+      // Fallback to hardcoded ideas if API fails
+      renderIdeas(ideas);
+      return;
+    }
+    
+    // Convert API data to ideas format
+    const apiIdeas = data.map(exp => ({
+      title: exp.title,
+      subject: exp.subject || 'science',
+      level: exp.level || 'easy',
+      class: exp.class || '4-6',
+      desc: exp.description || '',
+      detailedProc: exp.detailedProc || exp.procedure || [],
+      videoLink: exp.videoLink || exp.video_url || ''
+    }));
+    
+    // Combine with hardcoded ideas (remove duplicates by title)
+    const combined = [...ideas];
+    apiIdeas.forEach(apiIdea => {
+      if (!combined.find(i => i.title === apiIdea.title)) {
+        combined.push(apiIdea);
+      }
+    });
+    
+    renderIdeas(combined);
+  })
+  .catch(err => {
+    console.error('Error fetching experiments:', err);
+    // Fallback to hardcoded ideas
+    renderIdeas(ideas);
+  });
+}
+
+// Initial load - try API first, fallback to hardcoded
+loadExperiments();
+
+function applyFilters(){
+  const q = document.getElementById("f-search").value.toLowerCase();
+  const subject = document.getElementById("f-subject").value;
+  const level = document.getElementById("f-level").value;
+  const classFilter = document.getElementById("f-class").value;
+
+  const filtered = ideas.filter(x => {
+    if (q && !x.title.toLowerCase().includes(q) && !x.desc.toLowerCase().includes(q)) return false;
+    if (subject !== "all" && x.subject !== subject) return false;
+    if (level !== "all" && x.level !== level) return false;
+    if (classFilter !== "all" && x.class !== classFilter) return false;
+    return true;
+  });
+
+  renderIdeas(filtered);
+}
+
+function clearFilters(){
+  document.getElementById("f-search").value = "";
+  document.getElementById("f-subject").value = "all";
+  document.getElementById("f-level").value = "all";
+  document.getElementById("f-class").value = "all";
+  renderIdeas(ideas);
+}
+
+function openModal(index) {
+  const idea = ideas[index];
+  document.getElementById("m-title").textContent = idea.title;
+  document.getElementById("m-desc").textContent = idea.desc;
+  
+  // Clear and populate procedure list
+  const procedureList = document.getElementById("m-procedure");
+  procedureList.innerHTML = '';
+  
+  if (idea.detailedProc && idea.detailedProc.length > 0) {
+    idea.detailedProc.forEach((step, i) => {
+      const li = document.createElement("li");
+      li.textContent = step;
+      li.className = "procedure-step";
+      procedureList.appendChild(li);
+    });
+  } else if (idea.proc) {
+    // Fallback to simple procedure if detailed not available
+    idea.proc.forEach((step, i) => {
+      const li = document.createElement("li");
+      li.textContent = step;
+      li.className = "procedure-step";
+      procedureList.appendChild(li);
+    });
+  }
+  
+  // Handle video
+  const videoContainer = document.getElementById("video-container");
+  videoContainer.innerHTML = '';
+  
+  if (idea.videoLink) {
+    // Create iframe for YouTube video
+    const iframe = document.createElement("iframe");
+    iframe.src = idea.videoLink;
+    iframe.width = "100%";
+    iframe.height = "400";
+    iframe.frameBorder = "0";
+    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+    iframe.allowFullscreen = true;
+    iframe.style.borderRadius = "12px";
+    iframe.style.border = "1px solid rgba(255,255,255,0.1)";
+    videoContainer.appendChild(iframe);
+  } else {
+    // Fallback message if no video
+    const placeholder = document.createElement("div");
+    placeholder.className = "video-placeholder";
+    placeholder.innerHTML = `
+      <div style="font-size: 48px; margin-bottom: 10px;">📹</div>
+      <h4>Video Demonstration</h4>
+      <p>Search for "${idea.title} experiment" on YouTube to find related videos.</p>
+    `;
+    videoContainer.appendChild(placeholder);
+  }
+  
+  document.getElementById("modal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+  // Stop any playing videos
+  const iframe = document.querySelector("#video-container iframe");
+  if (iframe) {
+    iframe.src = iframe.src; // Reset to stop video
+  }
+}
+
+function copyIdea(index) {
+  const idea = ideas[index];
+  const steps = idea.detailedProc ? idea.detailedProc.join("\n  ") : idea.proc.join("\n  ");
+  const text = `${idea.title}\nClass: ${idea.class}\nSubject: ${idea.subject}\nDifficulty: ${idea.level}\n\nDescription:\n${idea.desc}\n\nDetailed Procedure:\n  ${steps}\n\nVideo Link: ${idea.videoLink || "Search on YouTube"}`;
+  
+  navigator.clipboard.writeText(text).then(() => {
+    // Show a small notification instead of alert
+    const notification = document.createElement("div");
+    notification.style.position = "fixed";
+    notification.style.top = "20px";
+    notification.style.right = "20px";
+    notification.style.background = "linear-gradient(135deg, var(--brand1), var(--brand2))";
+    notification.style.color = "white";
+    notification.style.padding = "12px 20px";
+    notification.style.borderRadius = "10px";
+    notification.style.zIndex = "10000";
+    notification.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+    notification.textContent = "✓ Idea copied to clipboard!";
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      document.body.removeChild(notification);
+    }, 2000);
+  });
+}
+
+// Add event listeners for real-time filtering
+document.addEventListener("DOMContentLoaded", function() {
+  const searchInput = document.getElementById("f-search");
+  const subjectSelect = document.getElementById("f-subject");
+  const levelSelect = document.getElementById("f-level");
+  const classSelect = document.getElementById("f-class");
+  const modal = document.getElementById("modal");
+  
+  if (searchInput) searchInput.addEventListener("input", applyFilters);
+  if (subjectSelect) subjectSelect.addEventListener("change", applyFilters);
+  if (levelSelect) levelSelect.addEventListener("change", applyFilters);
+  if (classSelect) classSelect.addEventListener("change", applyFilters);
+  
+  // Close modal when clicking outside
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target.id === "modal") closeModal();
+    });
+  }
+  
+  // Close modal with Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal.style.display === "flex") {
+      closeModal();
+    }
+  });
+});
+</script>
+
+</body>
+</html>
