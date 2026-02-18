@@ -984,17 +984,35 @@ const ideas = [
   videoLink: "https://youtube.com/shorts/MscjsCjxGEg?si=F4LPAXGAqIj3y3Bw"
 }
 ];
-</script>
-
-<script>
+// Combine hardcoded ideas into our working list
+let allExperiments = [...ideas]; 
 const grid = document.getElementById("grid");
 
+// HELPER: Convert standard YT link to Embed link
+function getEmbedUrl(link) {
+  if (!link) return null;
+  let videoId = "";
+  
+  if (link.includes("youtube.com/shorts/")) {
+    videoId = link.split("shorts/")[1].split("?")[0];
+  } else if (link.includes("v=")) {
+    videoId = link.split("v=")[1].split("&")[0];
+  } else if (link.includes("youtu.be/")) {
+    videoId = link.split("youtu.be/")[1].split("?")[0];
+  }
+  
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : link;
+}
+
+// RENDER CARDS TO GRID
 function renderIdeas(list){
   let html = "";
-  list.forEach((x, i) => {
+  list.forEach((x) => {
     const difficultyClass = `level-${x.level}`;
     const subjectClass = `subject-${x.subject}`;
     const severityBadge = x.level === 'easy' ? '🟢 Safe' : '🟠 Caution';
+    const globalIndex = allExperiments.findIndex(item => item.title === x.title);
+    
     html += `
       <div class="card ${difficultyClass} ${subjectClass}">
         <div class="save">★ Save</div>
@@ -1007,208 +1025,112 @@ function renderIdeas(list){
         </div>
         <p>${x.desc}</p>
         <div class="actions">
-          <button onclick="openModal(${i})">View details</button>
-          <button class="copy" onclick="copyIdea(${i})">Copy</button>
+          <button onclick="openModal(${globalIndex})">View details</button>
+          <button class="copy" onclick="copyIdea('${x.title}')">Copy</button>
         </div>
       </div>`;
   });
-  grid.innerHTML = html;
-  
-  // Add event listeners to copy buttons
-  document.querySelectorAll(".copy").forEach((btn, i) => {
-    btn.addEventListener("click", (e) => e.stopPropagation());
-  });
+  grid.innerHTML = html || '<p style="grid-column:1/-1; text-align:center;">No experiments found.</p>';
 }
 
-// Load experiments from API
+// FETCH FROM DATABASE (API)
 function loadExperiments() {
-  fetch('/api/experiments', {
-    credentials: 'include'
-  })
+  fetch('/api/experiments', { credentials: 'include' })
   .then(res => res.json())
   .then(data => {
-    if (data.error) {
-      console.error('Error loading experiments:', data.error);
-      // Fallback to hardcoded ideas if API fails
-      renderIdeas(ideas);
-      return;
+    if (data && !data.error && Array.isArray(data)) {
+      data.forEach(exp => {
+        if (!allExperiments.find(i => i.title === exp.title)) {
+          allExperiments.push({
+            title: exp.title,
+            subject: exp.subject || 'science',
+            level: exp.level || 'easy',
+            class: exp.class || '4-6',
+            desc: exp.description || '',
+            detailedProc: exp.detailedProc || exp.procedure || [],
+            videoLink: exp.videoLink || exp.video_url || ''
+          });
+        }
+      });
     }
-    
-    // Convert API data to ideas format
-    const apiIdeas = data.map(exp => ({
-      title: exp.title,
-      subject: exp.subject || 'science',
-      level: exp.level || 'easy',
-      class: exp.class || '4-6',
-      desc: exp.description || '',
-      detailedProc: exp.detailedProc || exp.procedure || [],
-      videoLink: exp.videoLink || exp.video_url || ''
-    }));
-    
-    // Combine with hardcoded ideas (remove duplicates by title)
-    const combined = [...ideas];
-    apiIdeas.forEach(apiIdea => {
-      if (!combined.find(i => i.title === apiIdea.title)) {
-        combined.push(apiIdea);
-      }
-    });
-    
-    renderIdeas(combined);
+    renderIdeas(allExperiments);
   })
-  .catch(err => {
-    console.error('Error fetching experiments:', err);
-    // Fallback to hardcoded ideas
-    renderIdeas(ideas);
-  });
+  .catch(() => renderIdeas(allExperiments));
 }
 
-// Initial load - try API first, fallback to hardcoded
-loadExperiments();
-
+// FILTER LOGIC
 function applyFilters(){
   const q = document.getElementById("f-search").value.toLowerCase();
   const subject = document.getElementById("f-subject").value;
   const level = document.getElementById("f-level").value;
   const classFilter = document.getElementById("f-class").value;
 
-  const filtered = ideas.filter(x => {
+  const filtered = allExperiments.filter(x => {
     if (q && !x.title.toLowerCase().includes(q) && !x.desc.toLowerCase().includes(q)) return false;
     if (subject !== "all" && x.subject !== subject) return false;
     if (level !== "all" && x.level !== level) return false;
     if (classFilter !== "all" && x.class !== classFilter) return false;
     return true;
   });
-
   renderIdeas(filtered);
 }
 
-function clearFilters(){
+function clearFilters() {
   document.getElementById("f-search").value = "";
   document.getElementById("f-subject").value = "all";
   document.getElementById("f-level").value = "all";
   document.getElementById("f-class").value = "all";
-  renderIdeas(ideas);
+  renderIdeas(allExperiments);
 }
 
+// MODAL LOGIC
 function openModal(index) {
-  const idea = ideas[index];
+  const idea = allExperiments[index];
+  if(!idea) return;
+
   document.getElementById("m-title").textContent = idea.title;
   document.getElementById("m-desc").textContent = idea.desc;
   
-  // Clear and populate procedure list
-  const procedureList = document.getElementById("m-procedure");
-  procedureList.innerHTML = '';
+  const procList = document.getElementById("m-procedure");
+  procList.innerHTML = '';
+  const steps = idea.detailedProc || idea.proc || [];
+  steps.forEach(step => {
+    const li = document.createElement("li");
+    li.className = "procedure-step";
+    li.textContent = step;
+    procList.appendChild(li);
+  });
   
-  if (idea.detailedProc && idea.detailedProc.length > 0) {
-    idea.detailedProc.forEach((step, i) => {
-      const li = document.createElement("li");
-      li.textContent = step;
-      li.className = "procedure-step";
-      procedureList.appendChild(li);
-    });
-  } else if (idea.proc) {
-    // Fallback to simple procedure if detailed not available
-    idea.proc.forEach((step, i) => {
-      const li = document.createElement("li");
-      li.textContent = step;
-      li.className = "procedure-step";
-      procedureList.appendChild(li);
-    });
-  }
-  
-  // Handle video
-  const videoContainer = document.getElementById("video-container");
-  videoContainer.innerHTML = '';
-  
+  const videoBox = document.getElementById("video-container");
+  videoBox.innerHTML = '';
   if (idea.videoLink) {
-    // Create iframe for YouTube video
     const iframe = document.createElement("iframe");
-    iframe.src = idea.videoLink;
+    iframe.src = getEmbedUrl(idea.videoLink);
     iframe.width = "100%";
     iframe.height = "400";
     iframe.frameBorder = "0";
-    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-    iframe.allowFullscreen = true;
+    iframe.allow = "autoplay; encrypted-media; fullscreen";
     iframe.style.borderRadius = "12px";
-    iframe.style.border = "1px solid rgba(255,255,255,0.1)";
-    videoContainer.appendChild(iframe);
+    videoBox.appendChild(iframe);
   } else {
-    // Fallback message if no video
-    const placeholder = document.createElement("div");
-    placeholder.className = "video-placeholder";
-    placeholder.innerHTML = `
-      <div style="font-size: 48px; margin-bottom: 10px;">📹</div>
-      <h4>Video Demonstration</h4>
-      <p>Search for "${idea.title} experiment" on YouTube to find related videos.</p>
-    `;
-    videoContainer.appendChild(placeholder);
+    videoBox.innerHTML = '<div class="video-placeholder"><h4>No Video Available</h4></div>';
   }
-  
   document.getElementById("modal").style.display = "flex";
 }
 
 function closeModal() {
   document.getElementById("modal").style.display = "none";
-  // Stop any playing videos
-  const iframe = document.querySelector("#video-container iframe");
-  if (iframe) {
-    iframe.src = iframe.src; // Reset to stop video
-  }
+  document.getElementById("video-container").innerHTML = ""; // This stops the video!
 }
 
-function copyIdea(index) {
-  const idea = ideas[index];
-  const steps = idea.detailedProc ? idea.detailedProc.join("\n  ") : idea.proc.join("\n  ");
-  const text = `${idea.title}\nClass: ${idea.class}\nSubject: ${idea.subject}\nDifficulty: ${idea.level}\n\nDescription:\n${idea.desc}\n\nDetailed Procedure:\n  ${steps}\n\nVideo Link: ${idea.videoLink || "Search on YouTube"}`;
-  
+function copyIdea(text) {
   navigator.clipboard.writeText(text).then(() => {
-    // Show a small notification instead of alert
-    const notification = document.createElement("div");
-    notification.style.position = "fixed";
-    notification.style.top = "20px";
-    notification.style.right = "20px";
-    notification.style.background = "linear-gradient(135deg, var(--brand1), var(--brand2))";
-    notification.style.color = "white";
-    notification.style.padding = "12px 20px";
-    notification.style.borderRadius = "10px";
-    notification.style.zIndex = "10000";
-    notification.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
-    notification.textContent = "✓ Idea copied to clipboard!";
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      document.body.removeChild(notification);
-    }, 2000);
+    alert("Experiment title copied to clipboard!");
   });
 }
 
-// Add event listeners for real-time filtering
-document.addEventListener("DOMContentLoaded", function() {
-  const searchInput = document.getElementById("f-search");
-  const subjectSelect = document.getElementById("f-subject");
-  const levelSelect = document.getElementById("f-level");
-  const classSelect = document.getElementById("f-class");
-  const modal = document.getElementById("modal");
-  
-  if (searchInput) searchInput.addEventListener("input", applyFilters);
-  if (subjectSelect) subjectSelect.addEventListener("change", applyFilters);
-  if (levelSelect) levelSelect.addEventListener("change", applyFilters);
-  if (classSelect) classSelect.addEventListener("change", applyFilters);
-  
-  // Close modal when clicking outside
-  if (modal) {
-    modal.addEventListener("click", (e) => {
-      if (e.target.id === "modal") closeModal();
-    });
-  }
-  
-  // Close modal with Escape key
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && modal.style.display === "flex") {
-      closeModal();
-    }
-  });
-});
+// Start everything
+loadExperiments();
 </script>
 
 </body>
